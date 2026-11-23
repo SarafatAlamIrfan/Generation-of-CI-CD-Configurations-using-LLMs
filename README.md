@@ -1,6 +1,6 @@
-# Can Free Local LLMs Write CI Configurations?
+# Can Local LLMs Write CI Configurations?
 
-Can a small, free LLM that runs on a single GPU write a **correct** CI configuration when it is given only a plain-English description of the file?
+Can a small LLM that runs on a single GPU write a **correct** CI configuration when it is given only a plain-English description of the file?
 
 This repository compares **six open models** on **10 real CI configurations** from public GitHub projects, across three CI services: **Azure Pipelines**, **GitHub Actions** and **Jenkins**. Every generated file is compared with the original and given a correctness verdict.
 
@@ -55,7 +55,7 @@ real CI configuration on GitHub  →  description written from it  →  descript
 
 ### The 6 models
 
-All six are free, run locally with [Ollama](https://ollama.com), and fit on one 16 GB GPU.
+All six are open models that run locally with [Ollama](https://ollama.com) and fit on one 16 GB GPU.
 
 | Model | Kind | Why it is included |
 |---|---|---|
@@ -142,7 +142,7 @@ Per-file comments are in [`results/azure_results.csv`](results/azure_results.csv
 
 | | qwen2.5-coder 7B / 14B, deepseek-coder-v2 16B | gemma3 12B, llama3.1 8B, codegemma 7B |
 |---|---|---|
-| Notebooks | [`azure/notebook/`](azure/notebook), [`jenkins/notebook/`](jenkins/notebook) | [`notebook/generate_free_models_kaggle.ipynb`](notebook/generate_free_models_kaggle.ipynb) |
+| Notebooks | [`azure/notebook/`](azure/notebook), [`jenkins/notebook/`](jenkins/notebook) | [`notebook/generate_gemma_llama_codegemma_kaggle.ipynb`](notebook/generate_gemma_llama_codegemma_kaggle.ipynb) |
 | Platform | Kaggle, Ollama | Kaggle, Tesla T4 (15 GB), Ollama 0.40.17 |
 | Settings | temperature 0, seed 42, num_ctx 8192, num_predict 2048 | same |
 | Seconds per file | not recorded | gemma3 21.3 · llama3.1 19.3 · codegemma 12.2 |
@@ -166,7 +166,7 @@ jenkins/
   notebook/
   generated/<model>/
 notebook/
-  generate_free_models_kaggle.ipynb   Kaggle notebook: gemma3 12B, llama3.1 8B and codegemma 7B (both platforms)
+  generate_gemma_llama_codegemma_kaggle.ipynb   Kaggle notebook: gemma3 12B, llama3.1 8B and codegemma 7B (both platforms)
 results/
   evaluation.xlsx                 Summary (all 6 models), All 6 models (counts, scope split, ranking), Azure, Jenkins
   azure_results.csv               verdict and comment per model and project
