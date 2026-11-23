@@ -1,0 +1,42 @@
+node {
+    def application = "devopsexample"
+    def dockerhubaccountid = "vikidvg"
+    def mvnHome = tool 'maven-3.5.2'
+    def dockerImage = ""
+    def dockerImageTag = "${dockerhubaccountid}/${application}:${env.BUILD_NUMBER}"
+
+    stage('Clone Repo') {
+        git url: 'https://github.com/vdharmaraj/PGDO_Proj3.git', branch: 'main'
+        def mvnHome = tool 'maven-3.5.2'
+    }
+
+    stage('Build Project') {
+        sh "'${mvnHome}/bin/mvn' clean install"
+    }
+
+    stage('Build Docker Image with new code') {
+        dockerImage = docker.build("${dockerhubaccountid}/${application}:${env.BUILD_NUMBER}")
+    }
+
+    stage('Push Image to Remote Repo') {
+        echo "Docker Image Tag Name ---> ${dockerImageTag}"
+        docker.withRegistry('', 'dockerHub') {
+            sh "docker tag ${dockerImage} ${dockerhubaccountid}/${application}:${env.BUILD_NUMBER}"
+            sh "docker tag ${dockerImage} ${dockerhubaccountid}/${application}:latest"
+            sh "docker push ${dockerhubaccountid}/${application}:${env.BUILD_NUMBER}"
+            sh "docker push ${dockerhubaccountid}/${application}:latest"
+        }
+    }
+
+    stage('Remove running container with old code') {
+        sh "docker rm -f \$(docker ps -a -f name=devopsexample -q) || true"
+    }
+
+    stage('Deploy Docker Image with new changes') {
+        sh "docker run --name devopsexample -d -p 2222:2222 ${dockerhubaccountid}/${application}:${env.BUILD_NUMBER}"
+    }
+
+    stage('Remove old images') {
+        sh "docker rmi ${dockerhubaccountid}/${application}:latest -f"
+    }
+}

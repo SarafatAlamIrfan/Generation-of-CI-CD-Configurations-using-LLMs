@@ -1,0 +1,53 @@
+trigger:
+  branches:
+    include:
+    - master
+
+jobs:
+  - job: PythonTest
+    displayName: Run lint tests
+    pool:
+      vmImage: windows-2019
+    strategy:
+      matrix:
+        PythonMinVersion:
+          python.version: '3.7'
+        PythonMaxVersion:
+          python.version: '3.10'
+    steps:
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '$(python.version)'
+      - script: |
+          python -m pip install --upgrade setuptools
+          pip install -r $(System.DefaultWorkingDirectory)/Python/Batch/requirements.txt
+          pip install coveralls flake8 pytest pytest-cov requests_mock
+          flake8 $(System.DefaultWorkingDirectory)/Python/Batch
+  - job: JavaTest
+    displayName: Run Java tests
+    pool:
+      vmImage: windows-2019
+    steps:
+      - task: Maven@3
+        inputs:
+          mavenOptions: '-Xmx3072m'
+          javaHomeOption: JDKVersion
+          jdkVersionOption: '1.8'
+          jdkArchitectureOption: 'x64'
+          publishJUnitResults: false
+          testResultsFiles: '**/TEST-*.xml'
+          goals: 'package'
+  - job: DotNetTest
+    displayName: Run C# tests
+    pool:
+      vmImage: windows-2019
+    steps:
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: restore
+          projects: '**/*.csproj'
+          feedsToUse: select
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: build
+          projects: '**/*.csproj'

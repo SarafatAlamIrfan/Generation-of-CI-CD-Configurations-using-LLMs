@@ -1,0 +1,61 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'windows-2019'
+
+jobs:
+  - job: PythonTest
+    displayName: 'Run lint tests'
+    strategy:
+      matrix:
+        PythonMinVersion:
+          python.version: '3.7'
+        PythonMaxVersion:
+          python.version: '3.10'
+    steps:
+      - task: UsePythonVersion@0
+        displayName: 'Use Python $(python.version)'
+        inputs:
+          versionSpec: '$(python.version)'
+      - task: Bash@3
+        displayName: 'Upgrade setuptools, install requirements and run flake8'
+        inputs:
+          command: 'bash'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/Python/Batch'
+          targetType: 'file'
+          script: |
+            python -m pip install --upgrade setuptools
+            python -m pip install -r $(System.DefaultWorkingDirectory)/Python/Batch/requirements.txt
+            python -m pip install coveralls flake8 pytest pytest-cov requests_mock
+            flake8 $(System.DefaultWorkingDirectory)/Python/Batch
+
+  - job: JavaTest
+    displayName: 'Run Java tests'
+    steps:
+      - task: Maven@3
+        displayName: 'Run Maven'
+        inputs:
+          mavenPomFile: '$(System.DefaultWorkingDirectory)/Java/pom.xml'
+          mavenOptions: '-Xmx3072m'
+          javaHomeOption: 'JDKVersion'
+          jdkVersionOption: '1.8'
+          jdkArchitectureOption: 'x64'
+          publishJUnitResults: false
+          testResultsFiles: '**/TEST-*.xml'
+          goals: 'package'
+
+  - job: DotNetTest
+    displayName: 'Run .NET tests'
+    steps:
+      - task: DotNetCoreCLI@2
+        displayName: 'Restore'
+        inputs:
+          command: 'restore'
+          projects: '**/*.csproj'
+          feedsToUse: 'select'
+      - task: DotNetCoreCLI@2
+        displayName: 'Build'
+        inputs:
+          command: 'build'
+          projects: '**/*.csproj'
